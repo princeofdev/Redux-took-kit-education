@@ -1,18 +1,40 @@
-import api from '../../services/api';
+// src/features/todos/todoService.js
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: 'http://localhost:5000/api'
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 const todoService = {
+  // For useQuery
   getTodos: async () => {
-    const response = await api.get('/todos');
-    return response.data;
+    const { data } = await api.get('/todos');
+    return data;
   },
-  createTodo: async (text) => {
-    const response = await api.post('/todos', { text });
-    return response.data;
+
+  // For useMutation
+  addTodo: async (text) => {
+    const { data } = await api.post('/todos', { text });
+    return data;
   },
+
   toggleTodo: async (id) => {
-    const response = await api.patch(`/todos/${id}`);
-    return response.data;
+    const { data } = await api.patch(`/todos/${id}`);
+    return data;
   },
+
+  deleteTodo: async (id) => {
+    const { data } = await api.delete(`/todos/${id}`);
+    return data;
+  }
 };
 
 export default todoService;

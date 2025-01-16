@@ -1,26 +1,30 @@
-import { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+// src/components/auth/LoginForm.jsx
+import { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { loginUser, clearError } from '../../features/auth/authSlice';
+import { useMutation } from '@tanstack/react-query';
+import { setError } from '../../features/auth/authSlice';  // Removed setCredentials import
+import authService from '../../features/auth/authService';
 
 const LoginForm = () => {
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error, token } = useSelector((state) => state.auth);
 
-  useEffect(() => {
-    if (token) {
+  const loginMutation = useMutation({
+    mutationFn: (credentials) => authService.login(credentials),
+    onSuccess: (data) => {
+      dispatch({ type: 'auth/setCredentials', payload: data });  // Direct dispatch
       navigate('/');
-    }
-    return () => {
-      dispatch(clearError());
-    };
-  }, [token, navigate, dispatch]);
+    },
+    onError: (error) => {
+      dispatch(setError(error.message));
+    },
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(loginUser(credentials));
+    loginMutation.mutate(credentials);
   };
 
   return (
@@ -47,13 +51,15 @@ const LoginForm = () => {
             required
           />
         </div>
-        {error && <div className="text-red-500">{error}</div>}
+        {loginMutation.error && (
+          <div className="text-red-500">{loginMutation.error.message}</div>
+        )}
         <button
           type="submit"
-          disabled={loading}
+          disabled={loginMutation.isPending}
           className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
         >
-          {loading ? 'Logging in...' : 'Login'}
+          {loginMutation.isPending ? 'Logging in...' : 'Login'}
         </button>
       </form>
     </div>
