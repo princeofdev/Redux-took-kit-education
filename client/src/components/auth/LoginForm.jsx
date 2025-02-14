@@ -1,5 +1,5 @@
 // src/components/auth/LoginForm.jsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
@@ -18,6 +18,7 @@ const LoginForm = () => {
       navigate('/');
     },
     onError: (error) => {
+      console.log(error.message);
       dispatch(setError(error.message));
     },
   });
@@ -26,6 +27,10 @@ const LoginForm = () => {
     e.preventDefault();
     loginMutation.mutate(credentials);
   };
+
+  useEffect(() => {
+    console.log(loginMutation);
+  }, [loginMutation])
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow">
